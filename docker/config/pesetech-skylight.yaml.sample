@@ -1,0 +1,18 @@
+mqtt:
+  broker: <home_assistant_mqtt_host>
+  # port: 1883
+  # username: <optional_mqtt_username>
+  # password: <optional_mqtt_password>
+  discovery_prefix: homeassistant
+  node_id: mqtt_mesh
+
+skylight_programs_enabled: false
+
+mesh:
+  skylight:
+    uuid: <uuid_from_gateway_scan>
+    name: Pesetech Skylight
+    # Home Assistant's initial entity id hint. Change this if you do not want light.skylight.
+    default_entity_id: light.skylight
+    type: pesetech_skylight
+    relay: false

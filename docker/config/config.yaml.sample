@@ -1,0 +1,44 @@
+---
+mqtt:
+  broker: <mqtt_broker>
+  # port: 1883
+  # username: <username>
+  # password: <password>
+  discovery_prefix: homeassistant
+  node_id: mqtt_mesh
+skylight_programs_enabled: false
+diagnostic_monitor:
+  enabled: false
+  path: /share/pesetech-command-monitor.jsonl
+  summary_interval_seconds: 60
+diagnostic_export:
+  enabled: false
+  port: 8766
+  tail_bytes: 1048576
+btmon_monitor:
+  enabled: false
+  adapter: ""
+  raw_path: /share/pesetech-btmon.log
+  events_path: /share/pesetech-btmon-events.jsonl
+  summary_path: /share/pesetech-btmon-summary.jsonl
+  summary_interval_seconds: 60
+  max_bytes: 26214400
+  max_files: 3
+  events_max_bytes: 5242880
+  events_max_files: 3
+  summary_max_bytes: 5242880
+  summary_max_files: 3
+mesh:
+  <hass_device_id>:
+    uuid: <bluetooth_mesh_device_uuid>
+    name: <hass_device_name>
+    type: light             # Only type supported for now.
+    relay: false            # Whether this node should act as a Bluetooth Relay
+
+  # Pesetech/Lepu Artificial Skylight profile.
+  # Uses raw BLE Mesh CTL scales known to work with Home Assistant MQTT lights.
+  skylight:
+    uuid: <bluetooth_mesh_device_uuid>
+    name: Skylight
+    type: pesetech_skylight
+    relay: false

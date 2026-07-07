@@ -1,0 +1,28 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.tmp/
+.DS_Store
+*.py[cod]
+*.log
+*.tar.gz
+*.apk
+*.xapk
+*.apks
+decompiled/
+xapk_unpack/
+pesetech-ha-addon/
+
+# configuration files
+config.yaml
+store.yaml
+store.bak.yaml
+docker/config/config.yaml
+docker/config/store.yaml
+docker/config/store.bak.yaml
+docker/config/.cache/
+docker/config/mesh-storage/
+
+# local test output
+.test-output.log
+.addon-output.log
