@@ -2,40 +2,49 @@
 
 Home Assistant add-on and MQTT bridge for controlling Pesetech/Lepu artificial skylights over Bluetooth Mesh.
 
-The current skylight support exposes normal Home Assistant light controls:
+Supported controls:
 
 - on/off
 - brightness
 - color temperature
-- transition-aware brightness/color changes
+- transitions for brightness and color temperature
 
-The bridge uses Home Assistant MQTT discovery, so the skylights appear as regular `light` entities once the add-on is configured and running.
+## Prerequisites
 
-## Repository Layout
+- Home Assistant OS or Supervised
+- MQTT broker/add-on
+- Bluetooth adapter visible to Home Assistant
+- Pesetech/Lepu skylight already in the Pesetech app, or an exported `/share/pesetech_mesh.json`
 
-- `gateway/`: Bluetooth Mesh gateway and MQTT bridge runtime.
-- `docker/`: Docker runtime used by the generated Home Assistant add-on.
-- `scripts/`: add-on generation, import, validation, diagnostics, and proof helpers.
-- `tests/`: unit tests for the bridge, add-on config generation, and helper scripts.
+## Install
+
+1. In Home Assistant, add this repository as an add-on repository:
+   `https://github.com/hrdwdmrbl/pesetech-home-assistant`
+2. Install **Pesetech BLE Mesh Gateway**.
+3. Start with the default options.
+
+## Setup
+
+Change only `operation` as you move through the setup:
+
+1. `runtime-check`
+2. `mesh-daemon-check`
+3. `cloud-fetch` with your Pesetech cloud token or username/password, or copy mesh JSON to `/share/pesetech_mesh.json`
+4. `import-check`
+5. `import`
+6. `service`
+
+Leave other options alone unless you know why you need them.
+
+## Notes
+
+- The light appears in Home Assistant through MQTT discovery.
+- Bluetooth adapter quality matters.
+- Off-with-transition is unreliable on these lights; use brightness/color transitions, then turn off separately.
 
 ## Development
 
-Run the test suite:
-
 ```sh
-python3 -m pytest
-```
-
-Generate a local Home Assistant add-on package tree:
-
-```sh
+make test
 make addon-generate
 ```
-
-The generated add-on is written under `.tmp/`, which is intentionally ignored by git.
-
-## Configuration Notes
-
-The add-on can import an existing Pesetech/Telink mesh from the official app/cloud export path, or it can provision a fresh mesh device. Do not commit `config.yaml`, `store.yaml`, mesh keys, Home Assistant tokens, Pesetech cloud credentials, add-on build outputs, or diagnostic archives.
-
-This project is still experimental. Keep a way to recover or reset your skylight before provisioning or importing mesh state.
