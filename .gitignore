@@ -14,9 +14,9 @@ xapk_unpack/
 pesetech-ha-addon/
 
 # configuration files
-config.yaml
-store.yaml
-store.bak.yaml
+/config.yaml
+/store.yaml
+/store.bak.yaml
 docker/config/config.yaml
 docker/config/store.yaml
 docker/config/store.bak.yaml

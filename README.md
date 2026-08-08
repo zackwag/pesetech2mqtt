@@ -12,29 +12,19 @@ Supported controls:
 ## Prerequisites
 
 - Home Assistant OS or Supervised
-- MQTT broker/add-on
+- MQTT broker add-on
 - Bluetooth adapter visible to Home Assistant
-- Pesetech/Lepu skylight already in the Pesetech app, or an exported `/share/pesetech_mesh.json`
+- Pesetech/Lepu skylight and its exported mesh JSON
 
 ## Install
 
 1. In Home Assistant, add this repository as an add-on repository:
    `https://github.com/hrdwdmrbl/pesetech-home-assistant`
 2. Install **Pesetech BLE Mesh Gateway**.
-3. Start with the default options.
+3. Copy the Pesetech mesh export to `/share/pesetech_mesh.json`.
+4. Start the add-on.
 
-## Setup
-
-Change only `operation` as you move through the setup:
-
-1. `runtime-check`
-2. `mesh-daemon-check`
-3. `cloud-fetch` with your Pesetech cloud token or username/password, or copy mesh JSON to `/share/pesetech_mesh.json`
-4. `import-check`
-5. `import`
-6. `service`
-
-Leave other options alone unless you know why you need them.
+The first start imports every skylight from the file. Later starts reuse the saved mesh configuration.
 
 ## Notes
 
@@ -46,5 +36,5 @@ Leave other options alone unless you know why you need them.
 
 ```sh
 make test
-make addon-generate
+make addon-image
 ```
