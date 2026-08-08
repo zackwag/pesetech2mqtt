@@ -196,6 +196,42 @@ class Light(Generic):
         except (KeyError, TypeError):
             return None
 
+    async def _read_status_once(self, *, client, address, request_opcode, status_opcode, timeout=None):
+        """Send one Mesh Get and clean up its listener on every exit path."""
+        app_index = self._app.app_keys[0][0]
+        callbacks = getattr(client, "app_message_callbacks", None)
+        callback_bucket = callbacks[status_opcode] if callbacks is not None else None
+        callbacks_before = set(callback_bucket) if callback_bucket is not None else set()
+        status = client.expect_app(
+            address,
+            app_index=app_index,
+            destination=None,
+            opcode=status_opcode,
+            params={},
+        )
+        registered_callbacks = (
+            set(callback_bucket) - callbacks_before if callback_bucket is not None else set()
+        )
+
+        try:
+            await client.send_app(
+                address,
+                app_index=app_index,
+                opcode=request_opcode,
+                params={},
+            )
+            result = await asyncio.wait_for(status, timeout=timeout or PESETECH_READ_TIMEOUT)
+        finally:
+            if hasattr(status, "cancel") and not status.done():
+                status.cancel()
+            if callback_bucket is not None:
+                callback_bucket.difference_update(registered_callbacks)
+
+        payload = self._status_payload(result, status_opcode)
+        if payload is None:
+            raise ValueError(f"Unexpected {status_opcode!s} reply from {address:04x}: {result!r}")
+        return payload
+
     def _status_matches_expected(self, payload, expected):
         if not expected:
             return False, False
@@ -768,13 +804,13 @@ class Light(Generic):
     async def get_onoff(self, timeout=None):
         client = self._app.elements[0][models.GenericOnOffClient]
         address = self._model_address(models.GenericOnOffServer)
-        state = await client.get_light_status([address], self._app.app_keys[0][0], timeout=timeout)
-
-        result = state.get(address) if isinstance(state, dict) else None
-        if result is None:
-            raise TimeoutError(f"No Generic OnOff Status reply from {address:04x}; result was {state!r}")
-        if isinstance(result, BaseException):
-            raise result
+        result = await self._read_status_once(
+            client=client,
+            address=address,
+            request_opcode=GenericOnOffOpcode.GENERIC_ONOFF_GET,
+            status_opcode=GenericOnOffOpcode.GENERIC_ONOFF_STATUS,
+            timeout=timeout,
+        )
         if "present_onoff" not in result:
             raise ValueError(f"Generic OnOff Status missing present_onoff: {result!r}")
 
@@ -1004,13 +1040,13 @@ class Light(Generic):
     async def get_lightness(self, timeout=None):
         client = self._app.elements[0][models.LightLightnessClient]
         address = self._model_address(models.LightLightnessServer)
-        state = await client.get_lightness([address], self._app.app_keys[0][0], timeout=timeout)
-
-        result = state.get(address) if isinstance(state, dict) else None
-        if result is None:
-            raise TimeoutError(f"No Light Lightness Status reply from {address:04x}; result was {state!r}")
-        if isinstance(result, BaseException):
-            raise result
+        result = await self._read_status_once(
+            client=client,
+            address=address,
+            request_opcode=LightLightnessOpcode.LIGHT_LIGHTNESS_GET,
+            status_opcode=LightLightnessOpcode.LIGHT_LIGHTNESS_STATUS,
+            timeout=timeout,
+        )
         if "present_lightness" not in result:
             raise ValueError(f"Light Lightness Status missing present_lightness: {result!r}")
 
@@ -1091,13 +1127,13 @@ class Light(Generic):
 
         client = self._app.elements[0][models.LightCTLClient]
         address = self._model_address(LightCTLTemperatureServer)
-        state = await client.get_ctl([address], self._app.app_keys[0][0], timeout=timeout)
-
-        result = state.get(address) if isinstance(state, dict) else None
-        if result is None:
-            raise TimeoutError(f"No Light CTL Temperature Status reply from {address:04x}; result was {state!r}")
-        if isinstance(result, BaseException):
-            raise result
+        result = await self._read_status_once(
+            client=client,
+            address=address,
+            request_opcode=LightCTLOpcode.LIGHT_CTL_TEMPERATURE_GET,
+            status_opcode=LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS,
+            timeout=timeout,
+        )
         if "present_ctl_temperature" not in result:
             raise ValueError(f"Light CTL Temperature Status missing present_ctl_temperature: {result!r}")
 
@@ -1118,13 +1154,13 @@ class Light(Generic):
 
         client = self._app.elements[0][models.LightCTLClient]
         address = self._model_address(models.LightCTLServer)
-        state = await client.get_ctl([address], self._app.app_keys[0][0], timeout=timeout)
-
-        result = state.get(address) if isinstance(state, dict) else None
-        if result is None:
-            raise TimeoutError(f"No Light CTL Temperature Status reply from {address:04x}; result was {state!r}")
-        if isinstance(result, BaseException):
-            raise result
+        result = await self._read_status_once(
+            client=client,
+            address=address,
+            request_opcode=LightCTLOpcode.LIGHT_CTL_TEMPERATURE_GET,
+            status_opcode=LightCTLOpcode.LIGHT_CTL_TEMPERATURE_STATUS,
+            timeout=timeout,
+        )
         if "present_ctl_temperature" not in result and "present_ctl_lightness" not in result:
             raise ValueError(f"Light CTL Temperature Status missing present state fields: {result!r}")
 

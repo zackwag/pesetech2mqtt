@@ -4,6 +4,7 @@ import sys
 import types
 import unittest
 
+from collections import defaultdict
 from enum import IntEnum
 from pathlib import Path
 
@@ -116,19 +117,23 @@ def load_light_node_module():
     lightness_mod = types.ModuleType("bluetooth_mesh.messages.generic.light.lightness")
 
     class GenericOnOffOpcode(IntEnum):
+        GENERIC_ONOFF_GET = 0x8201
         GENERIC_ONOFF_SET = 0x8202
         GENERIC_ONOFF_SET_UNACKNOWLEDGED = 0x8203
         GENERIC_ONOFF_STATUS = 0x8204
 
     class LightCTLOpcode(IntEnum):
+        LIGHT_CTL_GET = 0x825D
         LIGHT_CTL_SET = 0x825E
         LIGHT_CTL_SET_UNACKNOWLEDGED = 0x825F
         LIGHT_CTL_STATUS = 0x8260
+        LIGHT_CTL_TEMPERATURE_GET = 0x8261
         LIGHT_CTL_TEMPERATURE_SET = 0x8264
         LIGHT_CTL_TEMPERATURE_SET_UNACKNOWLEDGED = 0x8265
         LIGHT_CTL_TEMPERATURE_STATUS = 0x8266
 
     class LightLightnessOpcode(IntEnum):
+        LIGHT_LIGHTNESS_GET = 0x824B
         LIGHT_LIGHTNESS_SET = 0x824C
         LIGHT_LIGHTNESS_SET_UNACKNOWLEDGED = 0x824D
         LIGHT_LIGHTNESS_STATUS = 0x824E
@@ -236,6 +241,8 @@ class FakeClient:
         self.ack_after_sends = 1
         self.query_timeout = False
         self.status_message = None
+        self.resolve_status_on_send = False
+        self.app_message_callbacks = defaultdict(set)
 
     def tid(self):
         return 42
@@ -248,6 +255,16 @@ class FakeClient:
 
     def expect_app(self, source, app_index, destination, opcode, params):
         future = asyncio.Future()
+        def callback(_source, _app_index, _destination, message):
+            if _source != source or _app_index != app_index:
+                return False
+            if destination is not None and _destination != destination:
+                return False
+            if not future.done():
+                future.set_result(message)
+            return True
+
+        self.app_message_callbacks[opcode].add(callback)
         self.expected.append(
             {
                 "source": source,
@@ -256,6 +273,7 @@ class FakeClient:
                 "opcode": opcode,
                 "params": params,
                 "future": future,
+                "callback": callback,
             }
         )
         return future
@@ -269,6 +287,13 @@ class FakeClient:
                 "params": params,
             }
         )
+        if self.resolve_status_on_send and self.expected:
+            expected = self.expected[-1]
+            message = self._default_status_message(expected["opcode"])
+            callbacks = self.app_message_callbacks[expected["opcode"]]
+            for callback in list(callbacks):
+                if callback(destination, app_index, None, message):
+                    callbacks.discard(callback)
 
     async def query(self, request, status, send_interval=0.075, timeout=10.0):
         self.query_calls.append(
@@ -629,6 +654,50 @@ class NativeLightNodeTest(unittest.TestCase):
 
         self.assertIsNone(result)
         self.assertEqual(calls["count"], 10)
+
+    def test_cancelled_mesh_read_sends_once_and_removes_listener(self):
+        node, clients = self.make_node(
+            [FAKE_MODELS.GenericOnOffServer],
+            {FAKE_MODELS.GenericOnOffServer: 0x0802},
+        )
+        client = clients[FAKE_MODELS.GenericOnOffClient]
+
+        async def run_scenario():
+            task = asyncio.create_task(node.get_onoff(timeout=60))
+            await asyncio.sleep(0)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            sent_count = len(client.sent)
+            await asyncio.sleep(0.01)
+            return sent_count, len(client.sent)
+
+        sent_before, sent_after = asyncio.run(run_scenario())
+
+        self.assertEqual((sent_before, sent_after), (1, 1))
+        self.assertEqual(
+            client.app_message_callbacks[NODE_MODULE.GenericOnOffOpcode.GENERIC_ONOFF_STATUS],
+            set(),
+        )
+
+    def test_failed_mesh_read_is_bounded_to_ten_packets(self):
+        node, clients = self.make_node(
+            [FAKE_MODELS.GenericOnOffServer],
+            {FAKE_MODELS.GenericOnOffServer: 0x0802},
+        )
+        client = clients[FAKE_MODELS.GenericOnOffClient]
+
+        with self.assertLogs(level="WARNING"):
+            result = asyncio.run(
+                node._confirm_read("on/off", node.get_onoff, attempts=10, timeout=0.001, retry_delay=0)
+            )
+
+        self.assertIsNone(result)
+        self.assertEqual(len(client.sent), 10)
+        self.assertEqual(
+            client.app_message_callbacks[NODE_MODULE.GenericOnOffOpcode.GENERIC_ONOFF_STATUS],
+            set(),
+        )
 
 
 if __name__ == "__main__":

@@ -107,18 +107,22 @@ def install_bluetooth_mesh_stubs():
     bluetooth_mesh.models = models
 
     class GenericOnOffOpcode(enum.IntEnum):
+        GENERIC_ONOFF_GET = 0x8201
         GENERIC_ONOFF_SET = 0x8202
         GENERIC_ONOFF_SET_UNACKNOWLEDGED = 0x8203
         GENERIC_ONOFF_STATUS = 0x8204
 
     class LightCTLOpcode(enum.IntEnum):
-        LIGHT_CTL_SET = 0x825D
-        LIGHT_CTL_STATUS = 0x825E
+        LIGHT_CTL_GET = 0x825D
+        LIGHT_CTL_SET = 0x825E
+        LIGHT_CTL_STATUS = 0x8260
+        LIGHT_CTL_TEMPERATURE_GET = 0x8261
         LIGHT_CTL_TEMPERATURE_SET = 0x8264
         LIGHT_CTL_TEMPERATURE_STATUS = 0x8266
         LIGHT_CTL_TEMPERATURE_SET_UNACKNOWLEDGED = 0x8265
 
     class LightLightnessOpcode(enum.IntEnum):
+        LIGHT_LIGHTNESS_GET = 0x824B
         LIGHT_LIGHTNESS_SET = 0x824C
         LIGHT_LIGHTNESS_STATUS = 0x824E
         LIGHT_LIGHTNESS_SET_UNACKNOWLEDGED = 0x824D
@@ -144,10 +148,10 @@ def install_bluetooth_mesh_stubs():
     sys.modules["bluetooth_mesh.messages.generic.light.ctl"] = ctl
     sys.modules["bluetooth_mesh.messages.generic.light.lightness"] = lightness
 
-    return models, LightCTLOpcode, LightLightnessOpcode
+    return models, GenericOnOffOpcode, LightCTLOpcode, LightLightnessOpcode
 
 
-MODELS, LIGHT_CTL_OPCODE, LIGHT_LIGHTNESS_OPCODE = install_bluetooth_mesh_stubs()
+MODELS, GENERIC_ONOFF_OPCODE, LIGHT_CTL_OPCODE, LIGHT_LIGHTNESS_OPCODE = install_bluetooth_mesh_stubs()
 
 from mesh.nodes.light import PESETECH_VENDOR_OPCODE, Light, LightCTLTemperatureServer
 from mqtt.bridge import HassMqttBridge
@@ -204,6 +208,13 @@ class FakeOnOffClient:
 
     async def send_app(self, address, app_index, opcode, params):
         self.sent.append({"address": address, "app_index": app_index, "opcode": opcode, "params": params})
+        if opcode == GENERIC_ONOFF_OPCODE.GENERIC_ONOFF_GET:
+            if self.fail_get:
+                raise RuntimeError("on/off status read failed")
+            if self._status is not None and not self._status.done():
+                self._status.set_result({self._status_opcode.name.lower(): {"present_onoff": True}})
+            return
+
         kwargs = {}
         if "transition_time" in params:
             kwargs["transition_time"] = params["transition_time"]
@@ -247,6 +258,13 @@ class FakeLightnessClient:
                 "params": params,
             }
         )
+        if opcode == LIGHT_LIGHTNESS_OPCODE.LIGHT_LIGHTNESS_GET:
+            if self.fail_get:
+                raise RuntimeError("lightness status read failed")
+            if self._status is not None and not self._status.done():
+                self._status.set_result({self._status_opcode.name.lower(): dict(self.status)})
+            return
+
         if isinstance(params, dict) and "lightness" in params:
             kwargs = {}
             if "transition_time" in params:
@@ -303,6 +321,14 @@ class FakeCtlClient:
                 "params": params,
             }
         )
+        if opcode == LIGHT_CTL_OPCODE.LIGHT_CTL_TEMPERATURE_GET:
+            if self.fail_get:
+                raise RuntimeError("CTL status read failed")
+            self.gets.append(([address], app_index))
+            if self._status is not None and not self._status.done():
+                self._status.set_result({self._status_opcode.name.lower(): dict(self.status)})
+            return
+
         if "ctl_temperature" in params and "ctl_lightness" in params:
             kwargs = {}
             if "transition_time" in params:
@@ -513,6 +539,14 @@ class RecordingBridge(TestBridge):
 
 
 class MeshLightNodeTest(unittest.TestCase):
+    def setUp(self):
+        self._event_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._event_loop)
+
+    def tearDown(self):
+        asyncio.set_event_loop(None)
+        self._event_loop.close()
+
     def test_pesetech_temperature_commands_target_temperature_element(self):
         composition = {
             "elements": [
@@ -653,6 +687,7 @@ class MeshLightNodeTest(unittest.TestCase):
             node = Light(uuid.uuid4(), type="pesetech_skylight", unicast=0x120, count=1)
             await node.bind(app)
             app.lightness_client.sets.clear()
+            app.lightness_client.sent.clear()
             await node.set_brightness("not-a-number")
             return node
 
@@ -852,8 +887,9 @@ class MeshLightNodeTest(unittest.TestCase):
         self.assertTrue(node.supports(Light.TemperatureProperty))
         self.assertEqual(app.onoff_client.last_set, (0x120, 0, True, {}))
         self.assertEqual(app.lightness_client.sets, [(0x120, 0, 32640, {})])
-        self.assertEqual(app.lightness_client.sent[0]["address"], 0x120)
-        self.assertEqual(app.lightness_client.sent[0]["params"], {"lightness": 32640, "tid": 42})
+        lightness_set = next(message for message in app.lightness_client.sent if "lightness" in message["params"])
+        self.assertEqual(lightness_set["address"], 0x120)
+        self.assertEqual(lightness_set["params"], {"lightness": 32640, "tid": 42})
         self.assertEqual(app.ctl_client.gets, [])
         self.assertEqual(app.ctl_client.sent[-1]["address"], 0x122)
 
