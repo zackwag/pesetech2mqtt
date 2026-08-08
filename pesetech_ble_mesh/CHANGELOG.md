@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Restore BlueZ's required D-Bus policy during image installation.
+
 ## 0.2.0
 
 - Reduced the add-on to one automatic import and service path.

@@ -14,7 +14,7 @@ class AddonLayoutTest(unittest.TestCase):
 
     def test_manifest_has_one_optionless_mqtt_service_path(self):
         manifest = (ADDON / "config.yaml").read_text(encoding="utf-8")
-        self.assertIn("version: 0.2.0", manifest)
+        self.assertIn("version: 0.2.1", manifest)
         self.assertIn("boot: auto", manifest)
         self.assertIn("  - mqtt:need", manifest)
         self.assertIn("options: {}", manifest)
@@ -37,6 +37,11 @@ class AddonLayoutTest(unittest.TestCase):
         self.assertIn("Home Assistant Watchdog will restart the add-on", script)
         self.assertIn("python3 -m app.import_mesh --ensure", script)
         self.assertIn("/usr/bin/bluetooth-meshd", script)
+
+    def test_bluez_install_includes_dbus_policy(self):
+        script = (ADDON / "build" / "install-bluez.sh").read_text(encoding="utf-8")
+        self.assertIn("make install", script)
+        self.assertNotIn("install -m 0755 mesh/bluetooth-meshd", script)
 
 
 if __name__ == "__main__":

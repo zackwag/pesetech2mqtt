@@ -5,8 +5,7 @@ wget https://github.com/bluez/bluez/archive/refs/tags/5.66.tar.gz
 tar -xvf 5.66.tar.gz
 cd bluez-5.66
 ./bootstrap
-./configure --enable-mesh --prefix=/usr \
+./configure --enable-mesh --enable-testing --enable-tools --prefix=/usr \
   --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var
-make ell/shared ell/internal ell/ell.h
-make -j"$JOBS" mesh/bluetooth-meshd
-install -m 0755 mesh/bluetooth-meshd /usr/bin/bluetooth-meshd
+make -j"$JOBS"
+make install
