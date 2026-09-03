@@ -27,21 +27,57 @@ over Bluetooth Mesh to [Home Assistant](https://www.home-assistant.io/) via MQTT
 
 ---
 
+## Pairing
+
+The gateway does not provision devices itself — it joins an existing BLE Mesh
+network as a secondary node. You first pair your skylights using the
+**Telink SIG Mesh** app, then export the mesh configuration for use here.
+
+### 1. Install the provisioning app
+
+Install **Telink SIG Mesh** on Android or iOS (search the app store for
+"Telink SIG Mesh"). This is the standard provisioning tool for Telink
+BLE Mesh devices, which is what Pesetech/Lepu skylights use internally.
+
+### 2. Provision your skylights
+
+1. Open the app and create a new mesh network (or open an existing one).
+2. Tap **Add Device** and put each skylight into pairing mode (typically by
+   power-cycling it — consult your skylight's manual).
+3. The app scans for unprovisioned BLE devices. Select each skylight and add
+   it to the mesh. Give each one a descriptive name (e.g. "Living Room") —
+   these names become the default entity names in Home Assistant.
+4. Repeat for every skylight you want to control.
+
+### 3. Export the mesh configuration
+
+In the Telink SIG Mesh app, export or share the mesh configuration JSON.
+The exact menu path varies by app version but is typically under
+**Mesh → Share** or **Settings → Export**. The result is a JSON file —
+this is your `pesetech_mesh.json`.
+
+> **Security note:** this file contains the cryptographic keys for your mesh
+> network (network key, application key, per-device keys). Treat it like a
+> password — do not commit it to version control.
+
+The gateway identifies Pesetech skylights by their BLE Mesh model signature
+(`1000`, `1300`, `1303`, `1306`). Any non-skylight nodes (your phone, other
+devices) are automatically ignored during import.
+
+---
+
 ## Run in Docker
 
 ### 1. Get your mesh export
 
-Copy the Pesetech app's mesh export JSON to `docker/pesetech_mesh.json`.
+Copy the exported `pesetech_mesh.json` to `docker/pesetech_mesh.json`.
 
-### 2. Configure
+### 2. Configure (optional)
 
-```bash
-cp config.yaml.example docker/config/config.yaml
-```
-
-Edit `docker/config/config.yaml` and fill in each skylight's UUID and name. UUIDs
-come from the mesh export — run the container once and check the logs if you're
-unsure which UUID belongs to which light.
+On first start the gateway automatically imports all skylights from the mesh
+export and generates `docker/config/config.yaml`. You can customise that file
+afterwards to rename lights or override entity IDs — see
+[Configuration Reference](#configuration-reference) below.
 
 ### 3. Build and run
 
