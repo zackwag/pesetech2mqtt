@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Add `PYTHONUNBUFFERED=1` to Dockerfile so logs appear immediately in `docker compose logs`
+- Add `docker/README.md` for Docker Hub
+- Add `docker/config/.gitkeep` so the data directory exists on fresh clone
+
 ## 1.0.0
 
 - Forked from [hrdwdmrbl/pesetech-home-assistant](https://github.com/hrdwdmrbl/pesetech-home-assistant)
