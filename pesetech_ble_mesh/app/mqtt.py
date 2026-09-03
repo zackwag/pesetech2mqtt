@@ -54,6 +54,26 @@ def supervisor_mqtt_settings():
         raise RuntimeError(f"Supervisor returned invalid MQTT service data: {data!r}") from exc
 
 
+def env_mqtt_settings():
+    host = os.environ.get("MQTT_HOST")
+    if not host:
+        raise RuntimeError("MQTT_HOST is not set")
+    use_ssl = os.environ.get("MQTT_SSL", "").lower() in ("1", "true", "yes")
+    return {
+        "hostname": host,
+        "port": int(os.environ.get("MQTT_PORT", "8883" if use_ssl else "1883")),
+        "username": os.environ.get("MQTT_USERNAME") or None,
+        "password": os.environ.get("MQTT_PASSWORD") or None,
+        "tls_context": ssl.create_default_context() if use_ssl else None,
+    }
+
+
+def mqtt_settings():
+    if os.environ.get("MQTT_HOST"):
+        return env_mqtt_settings()
+    return supervisor_mqtt_settings()
+
+
 def parse_command(raw):
     try:
         payload = json.loads(raw.decode("utf-8"))
@@ -231,7 +251,7 @@ class PesetechMqttLightBridge:
 
 
 async def run_mqtt(nodes):
-    settings = await asyncio.to_thread(supervisor_mqtt_settings)
+    settings = await asyncio.to_thread(mqtt_settings)
     client = Client(**settings)
     bridges = [PesetechMqttLightBridge(client, node) for node in nodes]
 

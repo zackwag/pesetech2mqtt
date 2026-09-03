@@ -22,6 +22,8 @@ docker/config/store.yaml
 docker/config/store.bak.yaml
 docker/config/.cache/
 docker/config/mesh-storage/
+docker/pesetech_mesh.json
+.env
 
 # local test output
 .test-output.log

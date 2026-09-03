@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-DATA_DIR=/data
-MESH_JSON=/share/pesetech_mesh.json
+DATA_DIR="${DATA_DIR:-/data}"
+MESH_JSON="${MESH_JSON:-/share/pesetech_mesh.json}"
 CONFIG="$DATA_DIR/config.yaml"
 STORE="$DATA_DIR/store.yaml"
 
