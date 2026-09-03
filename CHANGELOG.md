@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
 
 - Forked from [hrdwdmrbl/pesetech-home-assistant](https://github.com/hrdwdmrbl/pesetech-home-assistant)
 - Removed Home Assistant add-on wrapper; project is now a standalone Docker container
