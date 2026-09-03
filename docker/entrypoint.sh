@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+export PYTHONPATH=/opt/pesetech2mqtt
+
 DATA_DIR="${DATA_DIR:-/data}"
 MESH_JSON="${MESH_JSON:-/share/pesetech_mesh.json}"
 CONFIG="$DATA_DIR/config.yaml"
@@ -67,5 +69,5 @@ if [[ "$terminated" == true ]]; then
   exit 0
 fi
 
-echo "A required Pesetech process exited; Home Assistant Watchdog will restart the add-on." >&2
+echo "A required pesetech2mqtt process exited; the container will restart." >&2
 exit 1

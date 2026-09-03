@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock
 
 from support import install_stubs
 
-
 STUBS = install_stubs()
 
 from app import skylight

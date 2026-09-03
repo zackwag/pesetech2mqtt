@@ -11,7 +11,6 @@ from uuid import UUID
 
 import yaml
 
-
 REQUIRED_MODELS = {"1000", "1300", "1303", "1306"}
 MESH_STORAGE_FIELDS = {"provisioners", "nodes", "netKeys", "appKeys"}
 

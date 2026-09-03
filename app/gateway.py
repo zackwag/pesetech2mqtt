@@ -15,7 +15,6 @@ from dbus_next.errors import DBusError
 from .mqtt import run_mqtt
 from .skylight import PesetechSkylight
 
-
 LOGGER = logging.getLogger(__name__)
 ALREADY_EXISTS = "org.bluez.mesh.Error.AlreadyExists"
 

@@ -8,7 +8,6 @@ from bluetooth_mesh.messages.generic.light.ctl import LightCTLOpcode
 from bluetooth_mesh.messages.generic.light.lightness import LightLightnessOpcode
 from bluetooth_mesh.messages.generic.onoff import GenericOnOffOpcode
 
-
 LOGGER = logging.getLogger(__name__)
 
 PESETECH_VENDOR_OPCODE = 0xE31102

@@ -5,7 +5,6 @@ from pathlib import Path
 
 from support import install_stubs
 
-
 install_stubs()
 
 from app import import_mesh

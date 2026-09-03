@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
 
   gateway:
-    build: ./pesetech_ble_mesh
+    build: .
     network_mode: host
     privileged: true
     env_file:

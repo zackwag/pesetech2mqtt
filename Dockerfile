@@ -34,15 +34,17 @@ WORKDIR /opt/build
 COPY build/install-bluez.sh ./
 RUN sh ./install-bluez.sh
 
-WORKDIR /opt/pesetech
+WORKDIR /opt/pesetech2mqtt
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY app ./app
-COPY run.sh ./
-RUN chmod +x run.sh
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+WORKDIR /data
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
     CMD python3 -c "import os,time; s=os.stat('/tmp/gateway.healthy'); exit(0 if time.time()-s.st_mtime < 120 else 1)"
 
-ENTRYPOINT ["/opt/pesetech/run.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

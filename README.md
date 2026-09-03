@@ -13,7 +13,7 @@ over Bluetooth Mesh to [Home Assistant](https://www.home-assistant.io/) via MQTT
 - Controls Pesetech/Lepu skylights over BLE Mesh
 - Auto-discovers lights in Home Assistant via MQTT Discovery
 - Supports on/off, brightness, color temperature, and transitions
-- Runs as a Home Assistant add-on **or** a standalone Docker container
+- Runs as a standalone Docker container
 - MQTT reconnection — recovers from broker restarts without reimporting the mesh
 
 ---
@@ -137,19 +137,10 @@ lowercase letters, digits, and underscores.
 
 ---
 
-## Run as a Home Assistant Add-on
+## Notes
 
-1. In Home Assistant, add this repository:
-   `https://github.com/zackwag/pesetech2mqtt`
-2. Install **Pesetech BLE Mesh Gateway**.
-3. Copy the Pesetech mesh export to `/share/pesetech_mesh.json`.
-4. Start the add-on.
-
-The first start imports all skylights from the export. Later starts reuse the
-saved mesh configuration.
-
-> **Note:** Off-with-transition is unreliable on these lights. Use a
-> brightness/color transition first, then turn off separately.
+- Off-with-transition is unreliable on these lights. Use a brightness/color
+  transition first, then turn off separately.
 
 ---
 
@@ -158,5 +149,5 @@ saved mesh configuration.
 ```sh
 make test    # run unit tests
 make lint    # run ruff
-make addon-image  # build HA add-on image(s)
+make build   # build Docker image
 ```

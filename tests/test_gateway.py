@@ -6,7 +6,6 @@ from pathlib import Path
 
 from support import install_stubs
 
-
 STUBS = install_stubs()
 
 from app import gateway
