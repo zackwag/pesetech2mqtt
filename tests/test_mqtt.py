@@ -1,12 +1,9 @@
-import asyncio
 import json
 import unittest
-from contextlib import asynccontextmanager
 from types import SimpleNamespace
 from uuid import UUID
 
 from support import install_stubs
-
 
 install_stubs()
 
@@ -87,7 +84,11 @@ class FakeNode:
         return {
             "state": "ON" if self.state[ONOFF] else "OFF",
             "color_mode": "color_temp",
-            **({"brightness": self.state[BRIGHTNESS], "color_temp": self.state[TEMPERATURE]} if self.state[ONOFF] else {}),
+            **(
+                {"brightness": self.state[BRIGHTNESS], "color_temp": self.state[TEMPERATURE]}
+                if self.state[ONOFF]
+                else {}
+            ),
         }
 
     async def turn_on(self, transition_time=None):

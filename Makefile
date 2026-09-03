@@ -3,10 +3,13 @@ SHELL := /bin/bash
 PYTHON ?= python3
 CONTAINER ?= container
 
-.PHONY: test addon-image addon-image-amd64 addon-image-aarch64 clean
+.PHONY: test lint addon-image addon-image-amd64 addon-image-aarch64 clean
 
 test:
 	PYTHONPATH=pesetech_ble_mesh $(PYTHON) -m unittest discover -s tests
+
+lint:
+	ruff check pesetech_ble_mesh/app tests
 
 addon-image: addon-image-amd64 addon-image-aarch64
 
