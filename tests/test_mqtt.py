@@ -136,8 +136,8 @@ class MqttTest(unittest.IsolatedAsyncioTestCase):
         await bridge.publish_discovery()
 
         topic, payload, options = client.published[0]
-        self.assertEqual(topic, "homeassistant/light/mqtt_mesh/skylight_a/config")
-        self.assertEqual(payload["unique_id"], "mqtt_mesh_skylight_a")
+        self.assertEqual(topic, "homeassistant/light/pesetech2mqtt/skylight_a/config")
+        self.assertEqual(payload["unique_id"], "pesetech2mqtt_skylight_a")
         self.assertEqual(payload["default_entity_id"], "light.skylight_a")
         self.assertEqual(payload["device"]["identifiers"], ["bluetooth_mesh_00112233-4455-6677-8899-aabbccddeeff"])
         self.assertEqual(payload["supported_color_modes"], ["color_temp"])

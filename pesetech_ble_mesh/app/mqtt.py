@@ -9,19 +9,14 @@ from asyncio_mqtt import MqttError
 from asyncio_mqtt.client import Client
 
 from .skylight import (
-    BRIGHTNESS,
     BRIGHTNESS_SCALE,
     MAX_MIRED,
     MIN_MIRED,
-    ONOFF,
-    TEMPERATURE,
-    PesetechSkylight,
 )
-
 
 LOGGER = logging.getLogger(__name__)
 DISCOVERY_PREFIX = "homeassistant"
-GATEWAY_ID = "mqtt_mesh"
+GATEWAY_ID = "pesetech2mqtt"
 MAX_TRANSITION_SECONDS = 37200.0
 SUPERVISOR_MQTT_URL = "http://supervisor/services/mqtt"
 
@@ -159,8 +154,8 @@ class PesetechMqttLightBridge:
                 "model": "Artificial Skylight",
             },
             "origin": {
-                "name": "pesetech-home-assistant",
-                "support_url": "https://github.com/hrdwdmrbl/pesetech-home-assistant",
+                "name": "pesetech2mqtt",
+                "support_url": "https://github.com/zackwag/pesetech2mqtt",
             },
         }
         await self.publish_json(f"{self.base_topic}/config", payload, retain=True)

@@ -140,7 +140,7 @@ lowercase letters, digits, and underscores.
 ## Run as a Home Assistant Add-on
 
 1. In Home Assistant, add this repository:
-   `https://github.com/zackwag/pesetech-home-assistant`
+   `https://github.com/zackwag/pesetech2mqtt`
 2. Install **Pesetech BLE Mesh Gateway**.
 3. Copy the Pesetech mesh export to `/share/pesetech_mesh.json`.
 4. Start the add-on.

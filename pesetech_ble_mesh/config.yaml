@@ -2,7 +2,7 @@ name: Pesetech BLE Mesh Gateway
 description: Control Pesetech/Lepu artificial skylights over Bluetooth Mesh.
 version: 0.2.1
 slug: pesetech_ble_mesh
-url: https://github.com/hrdwdmrbl/pesetech-home-assistant
+url: https://github.com/zackwag/pesetech2mqtt
 arch:
   - aarch64
   - amd64
