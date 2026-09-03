@@ -1,0 +1,14 @@
+mesh:
+  living_room_skylight:            # entity ID slug — used in MQTT topics and HA entity IDs
+    type: pesetech_skylight
+    uuid: "00000000-0000-0000-0000-000000000000"   # UUID from the Pesetech mesh export
+    name: "Living Room Skylight"                   # friendly name shown in Home Assistant
+    # default_entity_id: "light.living_room_skylight"  # optional; overrides the generated entity ID
+
+  # Add one entry per skylight.  The slug (e.g. living_room_skylight) must be
+  # unique and contain only lowercase letters, digits, and underscores.
+  #
+  # office_skylight:
+  #   type: pesetech_skylight
+  #   uuid: "11111111-1111-1111-1111-111111111111"
+  #   name: "Office Skylight"
