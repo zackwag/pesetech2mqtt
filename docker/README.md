@@ -67,6 +67,14 @@ services:
 | `MQTT_SSL` | — | Set to `true` to enable TLS |
 | `LOG_LEVEL` | `INFO` | Log verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
 
+When using the provided `docker-compose.yml`, two additional variables control
+**host-side** mount locations (set in `.env`; not passed into the container):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PESETECH_DATA_DIR` | `./docker/config` | Host directory mounted at `/data` |
+| `PESETECH_MESH_JSON` | `./docker/pesetech_mesh.json` | Host path to the mesh export |
+
 On first start the gateway imports all skylights from the mesh export and writes
 `config.yaml` and `store.yaml` to `/data`. Later starts reuse the saved
 configuration — the mesh export is only needed for the initial import.

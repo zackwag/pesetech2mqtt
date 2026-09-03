@@ -1,5 +1,6 @@
 # Pesetech BLE Mesh Gateway
 
+[![Docker Hub](https://img.shields.io/docker/v/zackwag/pesetech2mqtt?style=flat-square&logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/zackwag/pesetech2mqtt)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Backend](https://img.shields.io/badge/backend-Python%203-3776AB?style=flat-square&logo=python)](https://www.python.org/)
 
@@ -135,6 +136,17 @@ lowercase letters, digits, and underscores.
 | `MQTT_PASSWORD` | — | MQTT password (optional) |
 | `MQTT_SSL` | — | Set to `true` to enable TLS |
 | `LOG_LEVEL` | `INFO` | Log verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+
+### Host paths (Docker Compose only)
+
+Set these in `.env` to relocate the mounted files on the host. They are only
+read by Docker Compose for volume substitution and are not passed into the
+container.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PESETECH_DATA_DIR` | `./docker/config` | Host directory mounted at `/data` |
+| `PESETECH_MESH_JSON` | `./docker/pesetech_mesh.json` | Host path to the mesh export |
 
 ---
 

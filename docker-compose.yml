@@ -35,6 +35,6 @@ services:
       - path: .env
         required: false
     volumes:
-      - ${DATA_DIR:-./docker/config}:/data
-      - ${MESH_JSON:-./docker/pesetech_mesh.json}:/data/pesetech_mesh.json:ro
+      - ${PESETECH_DATA_DIR:-./docker/config}:/data
+      - ${PESETECH_MESH_JSON:-./docker/pesetech_mesh.json}:/data/pesetech_mesh.json:ro
     restart: unless-stopped

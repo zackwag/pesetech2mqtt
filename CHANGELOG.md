@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Fix naming collision between Docker Compose host-path vars and container-internal env vars: renamed `DATA_DIR`/`MESH_JSON` in `docker-compose.yml` and `.env.example` to `PESETECH_DATA_DIR`/`PESETECH_MESH_JSON` so user-set values are not inadvertently injected into the container via `env_file`
+
 ## 1.0.1
 
 - Add `PYTHONUNBUFFERED=1` to Dockerfile so logs appear immediately in `docker compose logs`
