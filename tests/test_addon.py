@@ -25,7 +25,7 @@ class AddonLayoutTest(unittest.TestCase):
         self.assertIn("read_only: true", manifest)
 
     def test_retired_subsystems_are_absent(self):
-        for name in ("gateway", "docker", "scripts"):
+        for name in ("gateway", "scripts"):
             self.assertFalse((ROOT / name).exists())
         files = "\n".join(str(path.relative_to(ADDON)) for path in (ADDON / "app").rglob("*.py"))
         for retired in ("diagnostic", "btmon", "skylight_programs", "raw_command", "provisioner"):

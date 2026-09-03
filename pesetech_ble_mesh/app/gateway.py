@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+import os
 from pathlib import Path
 from uuid import UUID
 
@@ -210,20 +211,32 @@ class PesetechGateway(Application):
             await self.elements[0][model].bind(self._app_index)
             LOGGER.info("Bound local %s to application key %d", model.__name__, self._app_index)
 
+    async def _heartbeat(self):
+        path = Path("/tmp/gateway.healthy")
+        while True:
+            path.touch()
+            await asyncio.sleep(30)
+
     async def run(self):
         async with self:
             await self.connect()
             await self.import_mesh_data()
             for node in self.nodes:
                 await node.bind(self)
-            await run_mqtt(self.nodes)
+            heartbeat = asyncio.create_task(self._heartbeat())
+            try:
+                await run_mqtt(self.nodes)
+            finally:
+                heartbeat.cancel()
+                await asyncio.gather(heartbeat, return_exceptions=True)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", default="/data")
     args = parser.parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    log_level = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    logging.basicConfig(level=log_level, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:

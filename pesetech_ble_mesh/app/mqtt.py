@@ -5,6 +5,7 @@ import os
 import ssl
 import urllib.request
 
+from asyncio_mqtt import MqttError
 from asyncio_mqtt.client import Client
 
 from .skylight import (
@@ -244,17 +245,24 @@ class PesetechMqttLightBridge:
             await asyncio.gather(self._readback_task, return_exceptions=True)
 
 
+async def _run_bridge(bridge):
+    await bridge.listen()
+    raise RuntimeError(f"MQTT bridge exited unexpectedly for {bridge.node}")
+
+
 async def run_mqtt(nodes):
     settings = await asyncio.to_thread(mqtt_settings)
-    client = Client(**settings)
-    bridges = [PesetechMqttLightBridge(client, node) for node in nodes]
+    retry_delay = 5
 
-    async def run_bridge(bridge):
-        await bridge.listen()
-        raise RuntimeError(f"MQTT bridge exited unexpectedly for {bridge.node}")
-
-    try:
-        async with client:
-            await asyncio.gather(*(run_bridge(bridge) for bridge in bridges))
-    finally:
-        await asyncio.gather(*(bridge.close() for bridge in bridges), return_exceptions=True)
+    while True:
+        client = Client(**settings)
+        bridges = [PesetechMqttLightBridge(client, node) for node in nodes]
+        try:
+            async with client:
+                await asyncio.gather(*(_run_bridge(bridge) for bridge in bridges))
+            return
+        except MqttError as exc:
+            LOGGER.warning("MQTT connection lost (%s: %s); reconnecting in %ds", type(exc).__name__, exc, retry_delay)
+        finally:
+            await asyncio.gather(*(bridge.close() for bridge in bridges), return_exceptions=True)
+        await asyncio.sleep(retry_delay)

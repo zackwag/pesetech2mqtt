@@ -114,10 +114,14 @@ def install_stubs():
     asyncio_mqtt = types.ModuleType("asyncio_mqtt")
     asyncio_mqtt_client = types.ModuleType("asyncio_mqtt.client")
 
+    class MqttError(Exception):
+        pass
+
     class Client:
         def __init__(self, **kwargs):
             self.kwargs = kwargs
 
+    asyncio_mqtt.MqttError = MqttError
     asyncio_mqtt_client.Client = Client
     asyncio_mqtt.client = asyncio_mqtt_client
     sys.modules["asyncio_mqtt"] = asyncio_mqtt

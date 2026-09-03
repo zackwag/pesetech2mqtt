@@ -42,4 +42,7 @@ COPY app ./app
 COPY run.sh ./
 RUN chmod +x run.sh
 
+HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
+    CMD python3 -c "import os,time; s=os.stat('/tmp/gateway.healthy'); exit(0 if time.time()-s.st_mtime < 120 else 1)"
+
 ENTRYPOINT ["/opt/pesetech/run.sh"]
