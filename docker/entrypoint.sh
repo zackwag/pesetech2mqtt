@@ -4,7 +4,7 @@ set -euo pipefail
 export PYTHONPATH=/opt/pesetech2mqtt
 
 DATA_DIR="${DATA_DIR:-/data}"
-MESH_JSON="${MESH_JSON:-/share/pesetech_mesh.json}"
+MESH_JSON="${MESH_JSON:-/data/pesetech_mesh.json}"
 CONFIG="$DATA_DIR/config.yaml"
 STORE="$DATA_DIR/store.yaml"
 

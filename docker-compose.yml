@@ -36,5 +36,5 @@ services:
         required: false
     volumes:
       - ./docker/config:/data
-      - ./docker/pesetech_mesh.json:/share/pesetech_mesh.json:ro
+      - ./docker/pesetech_mesh.json:/data/pesetech_mesh.json:ro
     restart: unless-stopped

@@ -70,7 +70,8 @@ devices) are automatically ignored during import.
 
 ### 1. Get your mesh export
 
-Copy the exported `pesetech_mesh.json` to `docker/pesetech_mesh.json`.
+Copy the exported `pesetech_mesh.json` to `docker/pesetech_mesh.json`. It will be
+mounted read-only at `/data/pesetech_mesh.json` inside the container.
 
 ### 2. Configure (optional)
 
