@@ -187,5 +187,117 @@ class MqttTest(unittest.IsolatedAsyncioTestCase):
             FakeMqttClient.messages = []
 
 
+    def test_parse_command_rejects_boolean_brightness(self):
+        for value in ("true", "false"):
+            payload = json.dumps({"state": "ON", "brightness": True if value == "true" else False}).encode()
+            with self.subTest(value=value):
+                with self.assertRaises(mqtt.InvalidMqttCommand, msg="brightness must be an integer"):
+                    mqtt.parse_command(payload)
+
+    def test_parse_command_rejects_boolean_color_temp(self):
+        for value in (True, False):
+            payload = json.dumps({"state": "ON", "color_temp": value}).encode()
+            with self.subTest(value=value):
+                with self.assertRaises(mqtt.InvalidMqttCommand, msg="color_temp must be an integer"):
+                    mqtt.parse_command(payload)
+
+    def test_parse_command_rejects_boolean_transition(self):
+        for value in (True, False):
+            payload = json.dumps({"state": "ON", "transition": value}).encode()
+            with self.subTest(value=value):
+                with self.assertRaises(mqtt.InvalidMqttCommand, msg="transition must be a number"):
+                    mqtt.parse_command(payload)
+
+    def test_parse_command_boundary_values(self):
+        from app.skylight import BRIGHTNESS_SCALE, MIN_MIRED, MAX_MIRED
+
+        # brightness 0
+        result = mqtt.parse_command(json.dumps({"state": "ON", "brightness": 0}).encode())
+        self.assertEqual(result["brightness"], 0)
+
+        # brightness at max (BRIGHTNESS_SCALE = 65280)
+        result = mqtt.parse_command(json.dumps({"state": "ON", "brightness": BRIGHTNESS_SCALE}).encode())
+        self.assertEqual(result["brightness"], BRIGHTNESS_SCALE)
+
+        # color_temp at MIN_MIRED
+        result = mqtt.parse_command(json.dumps({"color_temp": MIN_MIRED}).encode())
+        self.assertEqual(result["color_temp"], MIN_MIRED)
+
+        # color_temp at MAX_MIRED
+        result = mqtt.parse_command(json.dumps({"color_temp": MAX_MIRED}).encode())
+        self.assertEqual(result["color_temp"], MAX_MIRED)
+
+        # brightness just beyond max should be rejected
+        with self.assertRaises(mqtt.InvalidMqttCommand):
+            mqtt.parse_command(json.dumps({"state": "ON", "brightness": BRIGHTNESS_SCALE + 1}).encode())
+
+        # color_temp just below min should be rejected
+        with self.assertRaises(mqtt.InvalidMqttCommand):
+            mqtt.parse_command(json.dumps({"color_temp": MIN_MIRED - 1}).encode())
+
+        # color_temp just above max should be rejected
+        with self.assertRaises(mqtt.InvalidMqttCommand):
+            mqtt.parse_command(json.dumps({"color_temp": MAX_MIRED + 1}).encode())
+
+    async def test_handle_command_brightness_only(self):
+        client = FakeMqttClient()
+        node = FakeNode(client)
+        bridge = mqtt.PesetechMqttLightBridge(client, node)
+
+        await bridge.handle_command({"brightness": 1234})
+
+        self.assertEqual(node.calls, [("brightness", 1234, None)])
+        await bridge.close()
+
+    async def test_handle_command_color_temp_only(self):
+        client = FakeMqttClient()
+        node = FakeNode(client)
+        bridge = mqtt.PesetechMqttLightBridge(client, node)
+
+        await bridge.handle_command({"color_temp": 200})
+
+        self.assertEqual(node.calls, [("temperature", 200, None)])
+        await bridge.close()
+
+    async def test_handle_command_color_temp_with_state_on(self):
+        client = FakeMqttClient()
+        node = FakeNode(client)
+        bridge = mqtt.PesetechMqttLightBridge(client, node)
+
+        await bridge.handle_command({"state": "ON", "color_temp": 300})
+
+        self.assertEqual(node.calls, [("temperature", 300, None), ("on", None)])
+        await bridge.close()
+
+    async def test_schedule_readback_cancel_replace(self):
+        import asyncio
+
+        client = FakeMqttClient()
+        node = FakeNode(client)
+        bridge = mqtt.PesetechMqttLightBridge(client, node)
+
+        await bridge.handle_command({"state": "ON"})
+        first_task = bridge._readback_task
+        self.assertIsNotNone(first_task)
+
+        await bridge.handle_command({"state": "ON"})
+        second_task = bridge._readback_task
+        self.assertIsNotNone(second_task)
+
+        # The second command must have replaced the first task.
+        self.assertIsNot(first_task, second_task)
+
+        # Yield so the cancelled first task's CancelledError is processed.
+        # The run() coroutine catches CancelledError and returns, so the task
+        # ends as "done" (not asyncio-cancelled).
+        await asyncio.sleep(0)
+        self.assertTrue(first_task.done())
+
+        # The replacement task is still pending (readback_delay is 100s).
+        self.assertFalse(second_task.done())
+
+        await bridge.close()
+
+
 if __name__ == "__main__":
     unittest.main()

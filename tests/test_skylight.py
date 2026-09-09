@@ -177,5 +177,68 @@ class SkylightTest(unittest.IsolatedAsyncioTestCase):
         node.get_ctl_temperature.assert_awaited_once()
 
 
+    async def test_mireds_to_ctl_temperature_roundtrip(self):
+        convert = skylight.PesetechSkylight.mireds_to_ctl_temperature
+        inverse = skylight.PesetechSkylight.ctl_temperature_to_mireds
+        for mireds in (153, 250, 370, 500):
+            ctl = convert(mireds)
+            back = inverse(ctl)
+            self.assertAlmostEqual(
+                back, mireds, delta=1,
+                msg=f"roundtrip failed for mireds={mireds}: ctl={ctl}, back={back}",
+            )
+
+    async def test_mireds_to_ctl_temperature_boundary(self):
+        convert = skylight.PesetechSkylight.mireds_to_ctl_temperature
+        ctl_at_min_mired = convert(skylight.MIN_MIRED)
+        self.assertGreaterEqual(ctl_at_min_mired, skylight.MIN_CTL_TEMPERATURE)
+        self.assertLessEqual(ctl_at_min_mired, skylight.MAX_CTL_TEMPERATURE)
+        ctl_at_max_mired = convert(skylight.MAX_MIRED)
+        self.assertGreaterEqual(ctl_at_max_mired, skylight.MIN_CTL_TEMPERATURE)
+        self.assertLessEqual(ctl_at_max_mired, skylight.MAX_CTL_TEMPERATURE)
+
+    async def test_ctl_temperature_to_mireds_boundary(self):
+        inverse = skylight.PesetechSkylight.ctl_temperature_to_mireds
+        mireds_at_min = inverse(skylight.MIN_CTL_TEMPERATURE)
+        self.assertEqual(mireds_at_min, round(1_000_000 / skylight.MIN_KELVIN))
+        mireds_at_max = inverse(skylight.MAX_CTL_TEMPERATURE)
+        self.assertEqual(mireds_at_max, round(1_000_000 / skylight.MAX_KELVIN))
+
+    async def test_vendor_brightness_payload_clamping(self):
+        payload_fn = skylight.PesetechSkylight._vendor_brightness_payload
+        p0 = payload_fn(0)
+        self.assertEqual(p0[7:9], (0).to_bytes(2, "little"))
+        p255 = payload_fn(255)
+        self.assertEqual(p255[7:9], (255).to_bytes(2, "little"))
+        p_neg = payload_fn(-10)
+        self.assertEqual(p_neg[7:9], (0).to_bytes(2, "little"))
+        p_max = payload_fn(65535)
+        self.assertEqual(p_max[7:9], (65535).to_bytes(2, "little"))
+        p_over = payload_fn(70000)
+        self.assertEqual(p_over[7:9], (65535).to_bytes(2, "little"))
+
+    async def test_set_desired_off_state(self):
+        node = make_node()
+        node.set_desired(onoff=False)
+        payload = node.state_payload()
+        self.assertEqual(payload["state"], "OFF")
+
+    async def test_set_desired_zero_brightness_implies_off(self):
+        node = make_node()
+        node.set_desired(brightness=0)
+        self.assertFalse(node.retained(skylight.ONOFF, True))
+        payload = node.state_payload()
+        self.assertEqual(payload["state"], "OFF")
+
+    async def test_state_payload_when_off(self):
+        node = make_node()
+        node.set_desired(onoff=False)
+        payload = node.state_payload()
+        self.assertEqual(payload["state"], "OFF")
+        self.assertEqual(payload["color_mode"], "color_temp")
+        self.assertNotIn("brightness", payload)
+        self.assertNotIn("color_temp", payload)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -89,6 +89,55 @@ class GatewayTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(RuntimeError):
             await app._import("node", Operation(RuntimeError("failed")))
 
+    def test_required_int_rejects_out_of_range_value(self):
+        with self.assertRaisesRegex(ValueError, "must be between"):
+            gateway.required_int({"k": -1}, "k", "test", 0, 100)
+        with self.assertRaisesRegex(ValueError, "must be between"):
+            gateway.required_int({"k": 101}, "k", "test", 0, 100)
+
+    def test_required_int_rejects_non_integer(self):
+        with self.assertRaisesRegex(ValueError, "requires integer"):
+            gateway.required_int({"k": "abc"}, "k", "test", 0, 100)
+
+    def test_required_key_rejects_wrong_length(self):
+        with self.assertRaisesRegex(ValueError, "must be 16 bytes"):
+            gateway.required_key({"k": "00" * 8}, "k", "test")
+
+    def test_required_mapping_rejects_non_dict(self):
+        with self.assertRaisesRegex(ValueError, "requires a .* mapping"):
+            gateway.required_mapping({"k": [1, 2]}, "k", "test")
+        with self.assertRaisesRegex(ValueError, "requires a .* mapping"):
+            gateway.required_mapping({"k": "hello"}, "k", "test")
+
+    def test_normalized_uuid_handles_various_formats(self):
+        expected = "00112233-4455-6677-8899-aabbccddeeff"
+        self.assertEqual(gateway.normalized_uuid("00112233-4455-6677-8899-aabbccddeeff", "test"), expected)
+        self.assertEqual(gateway.normalized_uuid("00112233445566778899aabbccddeeff", "test"), expected)
+        self.assertEqual(gateway.normalized_uuid("00112233-4455-6677-8899-AABBCCDDEEFF", "test"), expected)
+        self.assertEqual(gateway.normalized_uuid("00112233445566778899AABBCCDDEEFF", "test"), expected)
+
+    def test_load_nodes_rejects_duplicate_uuid(self):
+        config, store = node_files()
+        node_uuid = "00112233-4455-6677-8899-aabbccddeeff"
+        config["mesh"]["skylight_b"] = {
+            "uuid": node_uuid,
+            "name": "Skylight B",
+            "type": "pesetech_skylight",
+        }
+        with self.assertRaisesRegex(ValueError, "duplicate node UUID"):
+            gateway.load_nodes(config, store)
+
+    def test_load_nodes_rejects_missing_name(self):
+        config, store = node_files()
+        del config["mesh"]["skylight_a"]["name"]
+        with self.assertRaisesRegex(ValueError, "requires a name"):
+            gateway.load_nodes(config, store)
+
+        config, store = node_files()
+        config["mesh"]["skylight_a"]["name"] = ""
+        with self.assertRaisesRegex(ValueError, "requires a name"):
+            gateway.load_nodes(config, store)
+
 
 if __name__ == "__main__":
     unittest.main()
