@@ -209,7 +209,7 @@ class MqttTest(unittest.IsolatedAsyncioTestCase):
                     mqtt.parse_command(payload)
 
     def test_parse_command_boundary_values(self):
-        from app.skylight import BRIGHTNESS_SCALE, MIN_MIRED, MAX_MIRED
+        from app.skylight import BRIGHTNESS_SCALE, MAX_MIRED, MIN_MIRED
 
         # brightness 0
         result = mqtt.parse_command(json.dumps({"state": "ON", "brightness": 0}).encode())
