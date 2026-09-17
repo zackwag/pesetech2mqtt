@@ -8,7 +8,7 @@ cryptography==3.3.2
 dbus-next==0.2.3
 docopt==0.6.2
 ecdsa==0.15
-marshmallow==3.17.1
+marshmallow==3.26.2
 numpy==1.23.3
 packaging==21.3
 paho-mqtt==1.6.1
