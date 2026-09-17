@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/zackwag/pesetech2mqtt/compare/v1.0.2...v1.1.0) (2026-09-17)
+
+
+### Features
+
+* **ci:** adopt release-please ([#6](https://github.com/zackwag/pesetech2mqtt/issues/6)) ([56a1be2](https://github.com/zackwag/pesetech2mqtt/commit/56a1be23c0558bd00eff5ee5459ab865d9dc4ee9))
+
+
+### Bug Fixes
+
+* **ci:** install requirements.txt before running tests ([#8](https://github.com/zackwag/pesetech2mqtt/issues/8)) ([612245d](https://github.com/zackwag/pesetech2mqtt/commit/612245deb9a7b13a39a7def0bc3d4ba8e95b8b58))
+* **docker:** bump base image from bullseye to bookworm ([#10](https://github.com/zackwag/pesetech2mqtt/issues/10)) ([6ad423e](https://github.com/zackwag/pesetech2mqtt/commit/6ad423e5d657c84e3e3a420251f87ea6353096cd))
+
+
+### Documentation
+
+* add CONTRIBUTING and AGENTS guides ([#5](https://github.com/zackwag/pesetech2mqtt/issues/5)) ([e4b76db](https://github.com/zackwag/pesetech2mqtt/commit/e4b76dba0fafbb94a8d20c17f2c996ad135ede5f))
+
 ## 1.0.2
 
 - Fix naming collision between Docker Compose host-path vars and container-internal env vars: renamed `DATA_DIR`/`MESH_JSON` in `docker-compose.yml` and `.env.example` to `PESETECH_DATA_DIR`/`PESETECH_MESH_JSON` so user-set values are not inadvertently injected into the container via `env_file`
