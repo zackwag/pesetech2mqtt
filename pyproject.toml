@@ -11,7 +11,7 @@ dependencies = [
     "asyncio-mqtt==0.12.1",
     "bitstring==3.1.9",
     "construct==2.9.45",
-    "cryptography==3.3.2",
+    "cryptography==50.0.0",
     "dbus-next==0.2.3",
     "marshmallow==3.17.1",
     "numpy==1.23.3",
