@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/zackwag/pesetech2mqtt/compare/v1.1.0...v1.1.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **ci:** use RELEASE_PLEASE_TOKEN so releases trigger downstream workflows ([#11](https://github.com/zackwag/pesetech2mqtt/issues/11)) ([f5d987b](https://github.com/zackwag/pesetech2mqtt/commit/f5d987b93fd59dc1aba4dfa4de07a1e7ca788402))
+
 ## [1.1.0](https://github.com/zackwag/pesetech2mqtt/compare/v1.0.2...v1.1.0) (2026-09-17)
 
 
