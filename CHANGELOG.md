@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/zackwag/pesetech2mqtt/compare/v1.1.1...v1.2.0) (2026-11-04)
+
+
+### Features
+
+* **ci:** use native ARM runners for multi-arch Docker build ([#13](https://github.com/zackwag/pesetech2mqtt/issues/13)) ([a204f32](https://github.com/zackwag/pesetech2mqtt/commit/a204f322b6bea4f8fdb9f9c5d7cb93ac8e023d6f))
+
 ## [1.1.1](https://github.com/zackwag/pesetech2mqtt/compare/v1.1.0...v1.1.1) (2026-09-17)
 
 
